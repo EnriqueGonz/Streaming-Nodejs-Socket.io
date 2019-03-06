@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="estilo.css" type="text/css">
+    <title>Emitir Video</title>
+    <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="fondo">
+    <video id="video" style="widht:800px;height:600px;" autoplay="true"></video>
+    <canvas id="preview" style=display:none></canvas>
+    <div id="logger"></div>
+    </div>
+
+    <script type="text/javascript">
+        var canvas= document.getElementById("preview");
+        var context = canvas.getContext("2d");
+        canvas.width=800;
+        canvas.height= 600;
+
+        context.width = canvas.width;
+        context.height = canvas.height;
+
+        var video = document.getElementById("video");
+        var socket = io();
+        function logger(msg){
+            $("#logger").text(msg);
+        }
+        function loadCam(stream){
+            video.srcObject=stream;
+            video.play();
+            logger('camara cargada correctamente [OK]');
+        }
+        function loadFail(){
+            logger('No es posible transmitir ahora!');
+        }
+        function viewVideo(video,context)
+        {
+            context.drawImage(video,0,0,context.width,context.height);
+            socket.emit('stream',canvas.toDataURL('image/webp'));
+
+        }
+
+        $(function(){
+            navigator.getUserMedia = (navigator.getUserMedia || 
+            navigator.webkitGetUserMedia || navigator.mozGetUserMedia || 
+            navigator.msgGetUserMedia);
+
+            if(navigator.getUserMedia){
+                navigator.getUserMedia({video:true},loadCam,loadFail);
+            }
+
+        setInterval(function(){
+            viewVideo(video,context);
+
+        },100);
+
+        });
+
+    </script>
+</body>
+</html>
